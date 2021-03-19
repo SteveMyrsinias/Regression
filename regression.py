@@ -4,11 +4,7 @@ Created on Fri Mar 19 10:00:56 2021
 
 @author: smirs
 """
-<<<<<<< HEAD
-#TESTESTESTEST123xxx
-=======
-#TESTESTESTEST
->>>>>>> 2be25805a547fd5399224f39ce529ec713c3f70e
+
 #Import Libraries
 from sklearn.metrics import mean_squared_error
 from sklearn.linear_model import Lasso
