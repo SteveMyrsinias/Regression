@@ -1,27 +1,7 @@
-# -*- coding: utf-8 -*-
-"""
-Created on Fri Mar 19 10:00:56 2021
-
-@author: smirs
-"""
-
-#Import Libraries
-from sklearn.metrics import mean_squared_error
-from sklearn.linear_model import Lasso
-from sklearn.linear_model import LinearRegression
-from sklearn.linear_model import Ridge
-from sklearn.linear_model import ElasticNet
-from sklearn.neighbors import KNeighborsRegressor
-from sklearn.svm import SVR
-from sklearn.ensemble import RandomForestRegressor
-from sklearn.ensemble import GradientBoostingRegressor
-from sklearn.ensemble import AdaBoostRegressor
+from sklearn.metrics import mean_squared_error, mean_absolute_error, median_absolute_error
+from sklearn.linear_model import ElasticNet, Lasso, Ridge, LinearRegression
+from sklearn.ensemble import RandomForestRegressor, GradientBoostingRegressor
 from sklearn.tree import DecisionTreeRegressor
-#from xgboost import XGBRegressor
-from sklearn.linear_model import LinearRegression
-from sklearn.metrics import mean_absolute_error 
-from sklearn.metrics import mean_squared_error 
-from sklearn.metrics import median_absolute_error
 from sklearn.model_selection import train_test_split
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -29,26 +9,46 @@ import seaborn as sns
 import numpy as np
 from scipy.stats import norm
 from sklearn.preprocessing import StandardScaler
+from sklearn import preprocessing
 from scipy import  stats 
 import warnings
+import os
 warnings.filterwarnings('ignore')
-%matplotlib inline
+# %matplotlib inline
 
 # import train data
-df_train = pd.read_csv('train.csv')
+my_path = os.path.abspath(os.path.dirname(__file__))
+missing_values = ["n/a", "na", "--", "?"] # pandas only detect NaN, NA,  n/a and values and empty shell
+df_train = pd.read_csv(r''+my_path+'\\data\\train.csv', sep=',', na_values=missing_values )
 
+# Visualize Education attained distribution
+sns.countplot(data=df_train, x=df_train['MSSubClass'])
+plt.title('Count the distribution of Education attained Categorical Column')
+plt.show()
+
+# % of missing.
+for col in df_train.columns:
+    pct_missing = np.mean(df_train[col].isnull())
+    print('{} - {}%'.format(col, round(pct_missing*100)))
+
+plt.boxplot(preprocessing.scale(np.array(df_train[['YearBuilt', 'YearRemodAdd', 'MasVnrArea', 'BsmtFinSF1', 'BsmtFinSF2', 'BsmtUnfSF', 'TotalBsmtSF', '1stFlrSF', '2ndFlrSF', 'GrLivArea', 'GarageYrBlt', 'WoodDeckSF', 'YrSold']])))
+plt.xticks([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13], ['YearBuilt', 'YearRemodAdd', 'MasVnrArea', 'BsmtFinSF1', 'BsmtFinSF2', 'BsmtUnfSF', 'TotalBsmtSF', '1stFlrSF', '2ndFlrSF', 'GrLivArea', 'GarageYrBlt', 'WoodDeckSF', 'YrSold'])
+plt.show()
+
+print(df_train.shape)
 df_train.head()
 df_train.columns
 df_train['SalePrice'].describe()
 
 #histogram
-sns.distplot(df_train['SalePrice']);
-
+sns.distplot(df_train['SalePrice'])
+plt.show()
 
 #relationship of square space and sales price
 var = 'GrLivArea'
 data = pd.concat([df_train['SalePrice'],df_train[var]],axis=1)
 data.plot.scatter(x=var, y='SalePrice',ylim=(0.000000))
+plt.show()
 print(data[:10])
 
 # saleprice correlation matrix
@@ -72,7 +72,7 @@ df_train = df_train.drop(df_train.loc[df_train['Electrical'].isnull()].index)
 df_train.isnull().sum().max()
 
 # standardizing data
-saleprice_scaled = StandardScaler().fit_transform(df_train['SalePrice'][:,np.newaxis]);
+saleprice_scaled = StandardScaler().fit_transform(df_train['SalePrice'][:,np.newaxis])
 low_range = saleprice_scaled[saleprice_scaled[:,0].argsort()][:10]  # rearrange ascending
 high_range = saleprice_scaled[saleprice_scaled[:,0].argsort()][-10:]  # rearrange descending
 print('outer range (low) of the distribution : ')
@@ -83,7 +83,7 @@ print(high_range)
 #bivariate analysis saleprice/grlivarea
 var = 'GrLivArea'
 data = pd.concat([df_train['SalePrice'], df_train[var]], axis=1)
-data.plot.scatter(x=var, y='SalePrice', ylim=(0,800000));
+data.plot.scatter(x=var, y='SalePrice', ylim=(0,800000))
 
 # dealing point 
 df_train.sort_values(by = 'GrLivArea', ascending=False)[:2]
@@ -92,19 +92,19 @@ df_train = df_train.drop(df_train[df_train['Id'] == 524].index)
 #bivariate analysis saleprice/grlivarea
 var = 'TotalBsmtSF'
 data = pd.concat([df_train['SalePrice'], df_train[var]], axis=1)
-data.plot.scatter(x=var, y='SalePrice', ylim=(0,800000));
+data.plot.scatter(x=var, y='SalePrice', ylim=(0,800000))
 
 # applying log transformation
 df_train['SalePrice'] = np.log(df_train['SalePrice'])
 # histogram and normal probability plot 
-sns.distplot(df_train['SalePrice'],fit=norm);
+sns.distplot(df_train['SalePrice'],fit=norm)
 fig = plt.figure()
 res = stats.probplot(df_train['SalePrice'], plot=plt)
 
 # applying log transformation
 df_train['GrLivArea'] = np.log(df_train['GrLivArea'])
 # histogram and normal probability plot 
-sns.distplot(df_train['GrLivArea'],fit=norm);
+sns.distplot(df_train['GrLivArea'],fit=norm)
 fig = plt.figure()
 res = stats.probplot(df_train['GrLivArea'], plot=plt)
 
@@ -120,27 +120,31 @@ print(df_train['HasBsmt'][:10])
 # transform data
 df_train.loc[df_train['HasBsmt']==1,'TotalBsmtSF'] = np.log(df_train['TotalBsmtSF'])
 # histogram and normal probabiloty plot
-sns.distplot(df_train[df_train['TotalBsmtSF']>0]['TotalBsmtSF'], fit=norm);
+sns.distplot(df_train[df_train['TotalBsmtSF']>0]['TotalBsmtSF'], fit=norm)
 fig = plt.figure()
 res = stats.probplot(df_train[df_train['TotalBsmtSF']>0]['TotalBsmtSF'], plot=plt)
 
 #scatter plot
-plt.scatter(df_train['GrLivArea'], df_train['SalePrice']);
+plt.scatter(df_train['GrLivArea'], df_train['SalePrice'])
 
 # scatter plot 
-plt.scatter(df_train[df_train['TotalBsmtSF']>0]['TotalBsmtSF'], df_train[df_train['TotalBsmtSF']>0]['SalePrice']);
+plt.scatter(df_train[df_train['TotalBsmtSF']>0]['TotalBsmtSF'], df_train[df_train['TotalBsmtSF']>0]['SalePrice'])
 
 # convert categorical variable into dummy
 df_train = pd.get_dummies(df_train)
-df_train.head()
+print('df_train.head()\n', df_train.head(5))
 df_train['SalePrice']
 
 from sklearn.model_selection import train_test_split
 from sklearn.linear_model import LinearRegression
 X = df_train.drop('SalePrice', axis=1)
 y = df_train['SalePrice']
-X.head()
-y.head()
+print('X.head()', X.head())
+print('df_train.columns', df_train.columns)
+print('y.head()', y.head())
+print('X.shape', X.shape)
+print('y.shape', y.shape)
+
 
 #Splitting data
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=20, shuffle =True)
