@@ -1,4 +1,4 @@
-from sklearn.metrics import mean_squared_error, mean_absolute_error, median_absolute_error
+from sklearn.metrics import mean_squared_error, mean_absolute_error, median_absolute_error,r2_score
 from sklearn.linear_model import ElasticNet, Lasso, Ridge, LinearRegression
 from sklearn.ensemble import RandomForestRegressor, GradientBoostingRegressor
 from sklearn.tree import DecisionTreeRegressor
@@ -13,17 +13,17 @@ from sklearn import preprocessing
 from scipy import  stats 
 import warnings
 import os
-warnings.filterwarnings('ignore')
-# %matplotlib inline
 
-# import train data
+warnings.filterwarnings('ignore')
+
+# Train Data
 my_path = os.path.abspath(os.path.dirname(__file__))
 missing_values = ["n/a", "na", "--", "?"] # pandas only detect NaN, NA,  n/a and values and empty shell
 df_train = pd.read_csv(r''+my_path+'\\data\\train.csv', sep=',', na_values=missing_values )
 
 # Visualize Education attained distribution
 sns.countplot(data=df_train, x=df_train['MSSubClass'])
-plt.title('Count the distribution of Education attained Categorical Column')
+plt.title('Distribution of Education attained Categorical Column')
 plt.show()
 
 # % of missing.
@@ -158,7 +158,7 @@ print('Reggression Test Score is : ' , rgr.score(X_test, y_test)*100)
 # Predicting the Test set results
 y_pred = rgr.predict(X_test)
 mean_absolute_error(y_test, y_pred)
-print('Mena Squard Error IS :     ',mean_squared_error(y_test, y_pred))
+print('Mean Squard Error IS :     ',mean_squared_error(y_test, y_pred))
 print('Mean Absolute Error Is :   ',mean_absolute_error(y_test, y_pred))
 print('Median Absolute Error Is : ',median_absolute_error(y_test, y_pred))
 # Function to invert target variable array from log scale
@@ -182,32 +182,37 @@ linear_val_rmse = mean_squared_error(inv_y(linear_val_predictions), inv_y(y_test
 linear_val_rmse = np.sqrt(linear_val_rmse)
 rmse_compare['LinearRegression'] = linear_val_rmse
 
-lr_score = linear_model.score(X_test, y_test)*100
-scores_compare['LinearRegression'] = lr_score
+r2score_lm = linear_model.score(X_test, y_test)
+scores_compare['LinearRegression'] = r2score_lm
+
 
 #Model 2: Decision Tress ===========================
 dtree_model = DecisionTreeRegressor(random_state=5)
 dtree_model.fit(X_train, y_train)
+
 
 dtree_val_predictions = dtree_model.predict(X_test)
 dtree_val_rmse = mean_squared_error(inv_y(dtree_val_predictions), inv_y(y_test))
 dtree_val_rmse = np.sqrt(dtree_val_rmse)
 rmse_compare['DecisionTreeRegressor'] = dtree_val_rmse
 
-dtree_score = dtree_model.score(X_test, y_test)*100
-scores_compare['DecisionTreeRegressor'] = dtree_score
+r2score_dt = dtree_model.score(X_test, y_test)
+scores_compare['DecisionTreeRegressor'] = r2score_dt
 
 # Model 3: Random Forest ==========================
 rf_model = RandomForestRegressor(random_state=5)
 rf_model.fit(X_train, y_train)
+
 
 rf_val_predictions = rf_model.predict(X_test)
 rf_val_rmse = mean_squared_error(inv_y(rf_val_predictions), inv_y(y_test))
 rf_val_rmse = np.sqrt(rf_val_rmse)
 rmse_compare['RandomForest'] = rf_val_rmse
 
-rf_score = rf_model.score(X_test, y_test)*100
-scores_compare['RandomForest'] = rf_score
+r2score_rf = rf_model.score(X_test, y_test)
+
+print(r2score_rf)
+scores_compare['RandomForest'] = r2score_rf
 
 
 # Model 4: Gradient Boostinf Regression ===========
@@ -219,8 +224,8 @@ gbr_val_rmse = mean_squared_error(inv_y(gbr_val_predictions), inv_y(y_test))
 gbr_val_rmse = np.sqrt(gbr_val_rmse)
 rmse_compare['GradientBoostingRegression'] = gbr_val_rmse
 
-gbr_score = gbr_model.score(X_test, y_test)*100
-scores_compare['GradientBoostingRegression'] = gbr_score
+r2score_gbr = gbr_model.score(X_test, y_test)
+scores_compare['GradientBoostingRegression'] = r2score_gbr
 
 print("RMSE values for different algorithms:")
 rmse_compare.sort_values(ascending=True).round()
